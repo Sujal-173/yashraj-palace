@@ -1,0 +1,223 @@
+Act as a Senior Software Architect, Security Engineer, QA Engineer, Performance Engineer, and Full Stack Code Reviewer.
+
+Analyze my entire website codebase thoroughly.
+
+IMPORTANT:
+- Do NOT rewrite files unless necessary.
+- Focus on finding issues, not generating large amounts of code.
+- Keep responses concise but detailed.
+- Minimize token usage by only showing affected files, exact problems, severity, and fixes.
+- Payment integration currently uses a DUMMY/FUTURE API. Ignore payment gateway implementation issues and do not report them as bugs, security issues, or missing features.
+
+Perform a complete audit in the following order:
+
+## 1. Project Architecture Review
+- Analyze folder structure
+- Check scalability
+- Check maintainability
+- Check separation of concerns
+- Check component organization
+- Check backend architecture
+- Check database architecture
+- Rate architecture out of 10
+
+## 2. Logic & Functional Analysis
+Review all business logic and identify:
+- Broken flows
+- Missing validations
+- Edge cases
+- Incorrect assumptions
+- Race conditions
+- State management issues
+- Booking flow issues
+- Authentication issues
+- Authorization issues
+- Data consistency problems
+
+For each issue provide:
+- Severity (Critical/High/Medium/Low)
+- File name
+- Exact location
+- Explanation
+- Fix recommendation
+
+## 3. Security Audit
+Check for:
+- Authentication vulnerabilities
+- Authorization bypass
+- JWT issues
+- Session issues
+- Password handling
+- Environment variable exposure
+- Secret leakage
+- API security flaws
+- CORS issues
+- XSS
+- CSRF
+- SSRF
+- Injection attacks
+- MongoDB injection
+- NoSQL injection
+- File upload vulnerabilities
+- Open redirects
+- Sensitive data exposure
+- Rate limiting absence
+- Security headers
+
+Provide:
+- Risk level
+- Attack scenario
+- Recommended fix
+
+## 4. Frontend Audit
+Analyze:
+- React/Next.js best practices
+- Component quality
+- State management
+- Re-render issues
+- Unused components
+- Dead code
+- UI inconsistencies
+- Accessibility issues
+- Responsive issues
+- Mobile breakpoints
+- Tablet breakpoints
+- Navigation issues
+- Form validation issues
+
+## 5. Backend Audit
+Review:
+- API routes
+- Controllers
+- Middleware
+- Error handling
+- Database queries
+- Validation
+- Authentication flow
+- Authorization flow
+- Logging
+- Scalability
+
+Identify:
+- Duplicate logic
+- Missing error handling
+- Missing validation
+- Inefficient queries
+
+## 6. Database Audit
+Check:
+- Schema design
+- Indexing opportunities
+- Query optimization
+- Data consistency
+- Referential integrity
+- Duplicate data risks
+- Scalability concerns
+
+## 7. Performance Audit
+Analyze:
+- Bundle size
+- Unused dependencies
+- Duplicate packages
+- Slow queries
+- Memory leaks
+- Large components
+- Expensive renders
+- Image optimization
+- Lazy loading opportunities
+- Caching opportunities
+
+Provide estimated performance impact.
+
+## 8. SEO Audit
+Check:
+- Metadata
+- Open Graph
+- Structured data
+- Sitemap
+- Robots.txt
+- Canonical URLs
+- Internal linking
+- Accessibility impact on SEO
+- Core Web Vitals
+
+## 9. Production Readiness Audit
+Check:
+- Deployment configuration
+- Environment variables
+- Build configuration
+- Logging
+- Monitoring
+- Backup strategy
+- Error recovery
+- Failure handling
+
+## 10. Code Quality Audit
+Find:
+- Dead code
+- Duplicate code
+- Unused files
+- Unused packages
+- Large files
+- Bad naming
+- Anti-patterns
+- Technical debt
+
+## 11. Breakpoint & Responsive Audit
+Test mentally for:
+- 320px
+- 375px
+- 425px
+- 768px
+- 1024px
+- 1440px
+
+Report:
+- Overflow issues
+- Hidden content
+- Layout breaking
+- Navigation issues
+- Form issues
+
+## 12. Final Report
+
+Create:
+
+### Critical Issues
+Only issues that can break production.
+
+### High Priority Issues
+Should be fixed before launch.
+
+### Medium Priority Issues
+
+### Low Priority Issues
+
+### Security Score (/10)
+
+### Performance Score (/10)
+
+### SEO Score (/10)
+
+### Architecture Score (/10)
+
+### Code Quality Score (/10)
+
+### Launch Readiness Score (/10)
+
+### Top 10 Fixes To Do First
+
+### Estimated Time To Production
+
+### Overall Verdict
+
+Be brutally honest.
+
+Do not praise anything unnecessarily.
+
+Only report real issues with evidence from the codebase.
+
+If you are uncertain, mark it as:
+"Needs Manual Verification"
+
+Never invent bugs that are not present in the code.
