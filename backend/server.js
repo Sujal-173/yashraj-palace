@@ -87,15 +87,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ── Serve frontend in production ───────────────────────────────────────────────
-const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
+// const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
+// app.use(express.static(frontendPath));
 
-// SPA fallback — send index.html for any non-API route
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  }
-});
+// // SPA fallback — send index.html for any non-API route
+// app.get('*', (req, res) => {
+//   if (!req.path.startsWith('/api')) {
+//     res.sendFile(path.join(frontendPath, 'index.html'));
+//   }
+// });
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/authRoutes'));
