@@ -8,19 +8,28 @@ const {
 const { protect } = require('../middleware/auth');
 const { validateRegister, validateLogin } = require('../middleware/validate');
 
-// Strict rate limit for auth endpoints — 10 requests per 15 minutes per IP
-const authLimiter = rateLimit({
+// Login/register: strict — 15 attempts per 15 minutes per IP
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 15,
   message: { success: false, message: 'Too many login attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-router.post('/register',       authLimiter, validateRegister, register);
-router.post('/login',          authLimiter, validateLogin,    login);
-router.post('/forgot-password',authLimiter, forgotPassword);
-router.post('/reset-password/:token', authLimiter, resetPassword);
+// Forgot/reset password: more lenient — 20 attempts per 15 minutes
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'Too many password reset requests. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post('/register',       loginLimiter, validateRegister, register);
+router.post('/login',          loginLimiter, validateLogin,    login);
+router.post('/forgot-password',resetLimiter, forgotPassword);
+router.post('/reset-password/:token', resetLimiter, resetPassword);
 router.get('/me',              protect, getMe);
 router.put('/profile',         protect, updateProfile);
 router.put('/change-password', protect, changePassword);

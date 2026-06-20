@@ -1,8 +1,15 @@
 const crypto = require('crypto');
+const validator = require('validator');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 const { sendPasswordResetEmail } = require('../utils/emailService');
+
+// Normalize email the same way the validateLogin/validateRegister middleware does
+// (validator.normalizeEmail lowercases + applies provider-specific transforms like
+//  removing dots for Gmail — this must stay consistent across all auth flows)
+const normalizeEmail = (raw) =>
+  validator.normalizeEmail((raw || '').trim()) || (raw || '').toLowerCase().trim();
 
 // @desc  Register user
 // @route POST /api/auth/register
@@ -26,7 +33,7 @@ const register = asyncHandler(async (req, res) => {
 // @route POST /api/auth/login
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email: normalizeEmail(email) }).select('+password');
   if (!user || !(await user.matchPassword(password))) {
     res.status(401); throw new Error('Invalid email or password');
   }
@@ -77,7 +84,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) { res.status(400); throw new Error('Email is required'); }
 
-  const user = await User.findOne({ email: email.toLowerCase().trim() });
+  const user = await User.findOne({ email: normalizeEmail(email) });
 
   // Always return the same message to prevent email enumeration
   if (!user || !user.isActive) {
