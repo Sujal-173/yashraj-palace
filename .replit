@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "nix"]
+modules = ["nodejs-20", "web"]
 [nix]
 channel = "stable-25_05"
 
@@ -26,13 +26,13 @@ args = "Backend API"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd frontend && npm run dev"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow]]
 name = "Backend API"
@@ -43,7 +43,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd backend && npm run dev"
+args = "cd backend && node server.js"
 waitForPort = 3000
 
 [[ports]]
