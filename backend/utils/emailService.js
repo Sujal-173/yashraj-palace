@@ -1,11 +1,4 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host:   process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port:   parseInt(process.env.EMAIL_PORT) || 587,
-  secure: false,
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-});
+const { emailjs } = require('@emailjs/nodejs');
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
 const WA_NUMBER   = process.env.WHATSAPP_NUMBER || '918827039565';
@@ -13,7 +6,7 @@ const CONTACT_PHONE = process.env.CONTACT_PHONE || `+${WA_NUMBER}`;
 const WA_LINK     = `https://wa.me/${WA_NUMBER}`;
 
 // Escape user-supplied strings before inserting into HTML
-const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc = (s) => String(s ?? '').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');
 
 const HEADER = `
   <div style="background:#6B1A2B;padding:24px;text-align:center">
@@ -32,21 +25,26 @@ const sendEmail = async ({ to, subject, html }) => {
     console.warn('⚠ sendEmail called without recipient (to)');
     return;
   }
-  if (!process.env.EMAIL_USER) {
-    console.warn('⚠ sendEmail skipped — EMAIL_USER is not configured in .env');
+  if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_USER_ID) {
+    console.warn('⚠ sendEmail skipped — EMAILJS_SERVICE_ID or EMAILJS_USER_ID is not configured in .env');
     return;
   }
   try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `Yashraj Palace <${process.env.EMAIL_USER}>`,
-      to,
+    const params = {
+      to_email: to,
       subject,
       html,
-    });
-    console.log(`✉ Email sent to ${to} | MessageID: ${info.messageId}`);
+      from_name: 'Yashraj Palace',
+    };
+    const result = await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID,
+      process.env.EMAILJS_TEMPLATE_ID,
+      params,
+      process.env.EMAILJS_USER_ID
+    );
+    console.log(`✉ Email sent to ${to} | Status: ${result.status}`);
   } catch (err) {
-    console.error('❌ Email failed to send:', err.message);
-    // Re-throw so callers' .catch() handlers can also react / log
+    console.error('❌ Email failed to send:', err.message || err);
     throw err;
   }
 };
