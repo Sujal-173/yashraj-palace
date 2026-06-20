@@ -92,9 +92,7 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-
-            {/* Desktop CTAs */}
-            <div className="hidden md:flex items-center gap-3">
+            
               {user ? (
                 <div className="flex items-center gap-2">
                   {isAdmin && (
@@ -114,6 +112,9 @@ export default function Navbar() {
                   Login
                 </Link>
               )}
+
+            {/* Desktop CTAs */}
+            <div className="hidden md:flex items-center gap-3">
               <Link
                 to="/events/book"
                 className="border border-maroon text-maroon text-xs font-bold uppercase tracking-[0.12em] px-5 py-2.5 transition-all hover:bg-maroon hover:text-white"
