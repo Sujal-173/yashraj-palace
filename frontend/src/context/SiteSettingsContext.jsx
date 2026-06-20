@@ -24,7 +24,7 @@ export function SiteSettingsProvider({ children }) {
   const load = useCallback(() => {
     api.get('/settings')
       .then(r => setSettings({ ...DEFAULT, ...r.data.settings }))
-      .catch(() => {})
+      .catch(err => console.error('[SiteSettings] Failed to load:', err?.response?.data?.message || err.message))
   }, [])
 
   useEffect(() => { load() }, [load])

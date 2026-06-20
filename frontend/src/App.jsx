@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import { useSiteSettings } from './context/SiteSettingsContext'
 import Navbar from './components/common/Navbar'
 import Footer from './components/common/Footer'
 import { FaWhatsapp } from 'react-icons/fa'
@@ -21,6 +22,8 @@ import BookingConfirmPage    from './pages/BookingConfirmPage'
 import LoginPage             from './pages/LoginPage'
 import RegisterPage          from './pages/RegisterPage'
 import MyBookingsPage        from './pages/MyBookingsPage'
+import ForgotPasswordPage    from './pages/ForgotPasswordPage'
+import ResetPasswordPage     from './pages/ResetPasswordPage'
 
 // SEO landing pages
 import SeoLandingPage        from './pages/SeoLandingPage'
@@ -42,27 +45,30 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useAuth()
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner"/></div>
   if (!user) return <Navigate to="/login" replace />
-  if (adminOnly && user.role === 'user') return <Navigate to="/" replace />
+  if (adminOnly && !['admin', 'staff'].includes(user.role)) return <Navigate to="/" replace />
   return children
 }
 
-const PublicLayout = ({ children }) => (
-  <div className="min-h-screen flex flex-col">
-    <Navbar />
-    <main className="flex-1">{children}</main>
-    <Footer />
-    <a
-      href="https://wa.me/917000000000"
-      target="_blank"
-      rel="noreferrer"
-      className="wa-float"
-      aria-label="Chat on WhatsApp"
-      title="Chat on WhatsApp"
-    >
-      <FaWhatsapp size={26} color="white" />
-    </a>
-  </div>
-)
+const PublicLayout = ({ children }) => {
+  const { waHref } = useSiteSettings()
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      <Footer />
+      <a
+        href={waHref}
+        target="_blank"
+        rel="noreferrer"
+        className="wa-float"
+        aria-label="Chat on WhatsApp"
+        title="Chat on WhatsApp"
+      >
+        <FaWhatsapp size={26} color="white" />
+      </a>
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -74,9 +80,9 @@ export default function App() {
       <Route path="/rooms/:slug" element={<PublicLayout><RoomDetailPage /></PublicLayout>} />
       <Route path="/book-room" element={<PublicLayout><RoomsPage /></PublicLayout>} />
       <Route path="/events" element={<PublicLayout><EventsPage /></PublicLayout>} />
-      <Route path="/events/:type" element={<PublicLayout><EventsPage /></PublicLayout>} />
       <Route path="/events/book" element={<PublicLayout><EventBookPage /></PublicLayout>} />
       <Route path="/events/packages" element={<PublicLayout><EventPackagesPage /></PublicLayout>} />
+      <Route path="/events/:type" element={<PublicLayout><EventsPage /></PublicLayout>} />
       <Route path="/dining" element={<PublicLayout><DiningPage /></PublicLayout>} />
       <Route path="/gallery" element={<PublicLayout><GalleryPage /></PublicLayout>} />
       <Route path="/nearby-attractions" element={<PublicLayout><NearbyPage /></PublicLayout>} />
@@ -84,6 +90,8 @@ export default function App() {
       <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
       <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
       <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
+      <Route path="/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
+      <Route path="/reset-password/:token" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
       <Route path="/booking-confirmation/:bookingId" element={<PublicLayout><BookingConfirmPage /></PublicLayout>} />
 
       {/* SEO landing pages */}

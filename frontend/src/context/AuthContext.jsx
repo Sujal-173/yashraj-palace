@@ -8,13 +8,21 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Validate token with server on startup — don't trust stale localStorage alone
   useEffect(() => {
     const token = localStorage.getItem('yp_token')
-    const saved = localStorage.getItem('yp_user')
-    if (token && saved) {
-      try { setUser(JSON.parse(saved)) } catch {}
-    }
-    setLoading(false)
+    if (!token) { setLoading(false); return }
+
+    authAPI.getMe()
+      .then(({ data }) => {
+        localStorage.setItem('yp_user', JSON.stringify(data.user))
+        setUser(data.user)
+      })
+      .catch(() => {
+        localStorage.removeItem('yp_token')
+        localStorage.removeItem('yp_user')
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   const login = useCallback(async (email, password) => {

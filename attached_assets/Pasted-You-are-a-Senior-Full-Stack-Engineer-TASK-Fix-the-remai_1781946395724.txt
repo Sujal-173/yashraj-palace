@@ -1,0 +1,168 @@
+You are a Senior Full Stack Engineer.
+
+TASK:
+Fix the remaining issues in my codebase with MINIMAL token usage.
+
+IMPORTANT RULES:
+
+* Do NOT analyze the entire project again.
+* Do NOT explain concepts.
+* Do NOT rewrite large files.
+* Do NOT generate unnecessary code.
+* Do NOT change UI/UX unless required.
+* Do NOT touch payment integration.
+* Ignore all Razorpay related issues completely.
+* Email credentials are already configured and should be considered fixed.
+* Work only on the issues listed below.
+* For every fix, modify only the affected code.
+* Show only:
+
+  1. File name
+  2. Exact change
+  3. Final code patch
+
+NO LONG EXPLANATIONS.
+
+=========================
+FIX THESE ISSUES ONLY
+=====================
+
+CRITICAL
+
+1. Replace all hardcoded placeholder phone numbers:
+   +91 70000 00000
+   917000000000
+
+Use centralized configuration/env/settings value.
+
+2. checkAvailability ignores totalRooms.
+   Availability must depend on overlapping bookings count < room.totalRooms.
+
+3. getUnavailableDates ignores totalRooms.
+   A date becomes unavailable only when bookings on that date >= room.totalRooms.
+
+4. Add-on price injection vulnerability.
+   Never trust addon prices from request body.
+   Use server-side price source only.
+
+=========================
+
+# HIGH PRIORITY
+
+5. Promo code usedCount increment rollback.
+
+If booking creation fails:
+rollback promo usage.
+
+Prefer Mongo transaction.
+If unavailable:
+implement safe fallback rollback.
+
+6. Dashboard date mutation bug.
+
+Replace shared now.setHours mutations with immutable todayStart/todayEnd variables.
+
+7. Cron cancellation should restore promo code usage counts.
+
+When pending bookings auto-cancel:
+decrement usedCount.
+
+8. Email template XSS protection.
+
+Sanitize all user-provided values before inserting into HTML templates.
+
+9. Booking lookup enumeration.
+
+Never reveal booking existence.
+
+Return same response for:
+
+* wrong phone
+* invalid booking
+
+Add rate limiting.
+
+10. Password reset flow.
+
+Implement:
+
+* forgot password
+* reset password
+
+Use existing resetPasswordToken fields if available.
+
+11. Event tokenAmount.
+
+Use Settings.tokenAmount instead of hardcoded value.
+
+=========================
+
+# MEDIUM PRIORITY
+
+12. updateGalleryImage
+
+Prevent undefined fields from overwriting existing values.
+Use $set with only provided fields.
+
+13. updateRoom
+
+Replace raw req.body update.
+
+Whitelist allowed fields.
+
+14. EventBooking indexes
+
+Add required indexes.
+
+15. Inquiries endpoint
+
+Add pagination.
+
+16. React Error Boundary
+
+Create lightweight global ErrorBoundary.
+
+17. AuthContext
+
+Validate user with getMe() on startup.
+Do not trust localStorage alone.
+
+18. Add sitemap.xml and robots.txt only if missing.
+    Do not modify existing SEO files.
+
+19. Dashboard stats optimization.
+
+Reduce excessive queries.
+Use aggregation/caching only where minimal code changes are required.
+
+=========================
+
+# LOW PRIORITY
+
+20. Reject past dates in availability checks.
+
+21. Replace quote expiration logic based on updatedAt with dedicated quoteSentAt field.
+
+22. Remove dead resetPassword schema fields only if new password reset implementation does not require them.
+
+23. Surface SiteSettingsContext errors instead of swallowing them silently.
+
+24. Add pagination support for reviews.
+
+=========================
+
+# OUTPUT FORMAT
+
+For each issue:
+
+ISSUE:
+FILE:
+PATCH:
+
+Do not print unchanged files.
+
+Do not repeat issue descriptions.
+
+Do not perform another audit.
+
+Only produce code changes required to fix the listed issues.

@@ -4,6 +4,12 @@ const RoomBooking = require('../models/RoomBooking');
 const slugify = require('slugify');
 const socket = require('../utils/socket');
 
+const ALLOWED_UPDATE_FIELDS = [
+  'name','description','shortDesc','price','discountedPrice','capacity','bedType',
+  'size','floor','images','amenities','features','policies','addOns','isAvailable',
+  'isActive','totalRooms','sortOrder','roomNumber',
+];
+
 // @desc  Get all active rooms (public)
 // @route GET /api/rooms
 const getRooms = asyncHandler(async (req, res) => {
@@ -35,7 +41,7 @@ const getRoom = asyncHandler(async (req, res) => {
   res.json({ success: true, room });
 });
 
-// @desc  Check room availability
+// @desc  Check room availability (respects totalRooms inventory)
 // @route POST /api/rooms/check-availability
 const checkAvailability = asyncHandler(async (req, res) => {
   const { roomId, checkIn, checkOut } = req.body;
@@ -44,20 +50,29 @@ const checkAvailability = asyncHandler(async (req, res) => {
   }
   const checkInDate  = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
+
+  // Reject past dates
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (checkInDate < today) {
+    res.status(400); throw new Error('Check-in date cannot be in the past');
+  }
   if (checkInDate >= checkOutDate) {
     res.status(400); throw new Error('Check-out must be after check-in');
   }
 
-  const conflicting = await RoomBooking.findOne({
+  const room = await Room.findById(roomId);
+  if (!room) { res.status(404); throw new Error('Room not found'); }
+
+  const overlapping = await RoomBooking.countDocuments({
     room: roomId,
     status: { $in: ['pending', 'confirmed', 'checked_in'] },
-    $or: [{ checkIn: { $lt: checkOutDate }, checkOut: { $gt: checkInDate } }]
+    checkIn:  { $lt: checkOutDate },
+    checkOut: { $gt: checkInDate },
   });
 
-  const room = await Room.findById(roomId);
   res.json({
     success: true,
-    available: !conflicting,
+    available: overlapping < room.totalRooms,
     room: { _id: room._id, name: room.name, price: room.price }
   });
 });
@@ -68,17 +83,23 @@ const createRoom = asyncHandler(async (req, res) => {
   const { name, ...rest } = req.body;
   const slug = slugify(name, { lower: true, strict: true });
   const room = await Room.create({ name, slug, ...rest });
-  // Notify all website visitors so they see the new room immediately
   socket.emit('content_updated', { type: 'rooms', action: 'created', roomId: room._id });
   res.status(201).json({ success: true, room });
 });
 
-// @desc  Update room (Admin)
+// @desc  Update room (Admin) — whitelisted fields only
 // @route PUT /api/rooms/:id
 const updateRoom = asyncHandler(async (req, res) => {
-  const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const update = {};
+  ALLOWED_UPDATE_FIELDS.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
+  if (update.name) update.slug = slugify(update.name, { lower: true, strict: true });
+
+  const room = await Room.findByIdAndUpdate(
+    req.params.id,
+    { $set: update },
+    { new: true, runValidators: true }
+  );
   if (!room) { res.status(404); throw new Error('Room not found'); }
-  // Notify website in real time
   socket.emit('content_updated', { type: 'rooms', action: 'updated', roomId: room._id });
   res.json({ success: true, room });
 });
@@ -92,23 +113,33 @@ const deleteRoom = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Room deactivated' });
 });
 
-// @desc  Get unavailable dates for a room
+// @desc  Get unavailable dates for a room (respects totalRooms inventory)
 // @route GET /api/rooms/:id/unavailable-dates
 const getUnavailableDates = asyncHandler(async (req, res) => {
+  const room = await Room.findById(req.params.id).select('totalRooms');
+  if (!room) { res.status(404); throw new Error('Room not found'); }
+
   const bookings = await RoomBooking.find({
     room: req.params.id,
     status: { $in: ['confirmed', 'checked_in'] },
     checkOut: { $gte: new Date() }
   }).select('checkIn checkOut');
 
-  const unavailableDates = [];
+  // Build a date → booking count map; mark unavailable when count >= totalRooms
+  const dateCount = {};
   bookings.forEach(b => {
     let d = new Date(b.checkIn);
-    while (d < new Date(b.checkOut)) {
-      unavailableDates.push(new Date(d).toISOString().split('T')[0]);
+    const end = new Date(b.checkOut);
+    while (d < end) {
+      const key = d.toISOString().split('T')[0];
+      dateCount[key] = (dateCount[key] || 0) + 1;
       d.setDate(d.getDate() + 1);
     }
   });
+
+  const unavailableDates = Object.entries(dateCount)
+    .filter(([, count]) => count >= room.totalRooms)
+    .map(([date]) => date);
 
   res.json({ success: true, unavailableDates });
 });

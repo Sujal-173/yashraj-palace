@@ -16,11 +16,15 @@ const createReview = asyncHandler(async (req, res) => {
 });
 
 const getReviews = asyncHandler(async (req, res) => {
-  const { featured } = req.query;
+  const { featured, page = 1, limit = 20 } = req.query;
   const query = { isActive: true, isApproved: true };
   if (featured === 'true') query.isFeatured = true;
-  const reviews = await Review.find(query).sort({ createdAt: -1 }).limit(20);
-  res.json({ success: true, reviews });
+  const total = await Review.countDocuments(query);
+  const reviews = await Review.find(query)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * Number(limit))
+    .limit(Number(limit));
+  res.json({ success: true, total, pages: Math.ceil(total / Number(limit)), reviews });
 });
 
 const getAllReviewsAdmin = asyncHandler(async (req, res) => {
@@ -41,7 +45,6 @@ const updateReview = asyncHandler(async (req, res) => {
     { new: true }
   );
   if (!review) { res.status(404); throw new Error('Review not found'); }
-  // Emit live update so the public Reviews page refreshes
   socket.emit('content_updated', { type: 'reviews', action: 'updated' });
   res.json({ success: true, review });
 });
@@ -68,13 +71,21 @@ const addGalleryImage = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, image });
 });
 
+// Only update fields that were explicitly provided — prevents undefined overwriting existing values
 const updateGalleryImage = asyncHandler(async (req, res) => {
   const { title, url, thumbnail, category, alt, caption, isFeatured, isActive, sortOrder } = req.body;
-  const image = await Gallery.findByIdAndUpdate(
-    req.params.id,
-    { title, url, thumbnail, category, alt, caption, isFeatured, isActive, sortOrder },
-    { new: true }
-  );
+  const update = {};
+  if (title      !== undefined) update.title      = title;
+  if (url        !== undefined) update.url        = url;
+  if (thumbnail  !== undefined) update.thumbnail  = thumbnail;
+  if (category   !== undefined) update.category   = category;
+  if (alt        !== undefined) update.alt        = alt;
+  if (caption    !== undefined) update.caption    = caption;
+  if (isFeatured !== undefined) update.isFeatured = isFeatured;
+  if (isActive   !== undefined) update.isActive   = isActive;
+  if (sortOrder  !== undefined) update.sortOrder  = sortOrder;
+
+  const image = await Gallery.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
   if (!image) { res.status(404); throw new Error('Gallery image not found'); }
   socket.emit('content_updated', { type: 'gallery', action: 'updated' });
   res.json({ success: true, image });
@@ -83,7 +94,7 @@ const updateGalleryImage = asyncHandler(async (req, res) => {
 const deleteGalleryImage = asyncHandler(async (req, res) => {
   const image = await Gallery.findById(req.params.id);
   if (!image) { res.status(404); throw new Error('Gallery image not found'); }
-  const isOwner = image.uploadedBy && String(image.uploadedBy) === String(req.user._id);
+  const isOwner    = image.uploadedBy && String(image.uploadedBy) === String(req.user._id);
   const isAdminUser = req.user.role === 'admin' || req.user.role === 'staff';
   if (!isOwner && !isAdminUser) {
     res.status(403); throw new Error('You can only delete your own images');
@@ -112,10 +123,14 @@ const createInquiry = asyncHandler(async (req, res) => {
 });
 
 const getAllInquiries = asyncHandler(async (req, res) => {
-  const { status } = req.query;
+  const { status, page = 1, limit = 20 } = req.query;
   const query = status ? { status } : {};
-  const inquiries = await Inquiry.find(query).sort({ createdAt: -1 });
-  res.json({ success: true, count: inquiries.length, inquiries });
+  const total = await Inquiry.countDocuments(query);
+  const inquiries = await Inquiry.find(query)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * Number(limit))
+    .limit(Number(limit));
+  res.json({ success: true, count: inquiries.length, total, pages: Math.ceil(total / Number(limit)), inquiries });
 });
 
 const updateInquiry = asyncHandler(async (req, res) => {
@@ -144,7 +159,6 @@ const getOffers = asyncHandler(async (req, res) => {
   res.json({ success: true, offers });
 });
 
-// Admin: returns ALL offers regardless of isActive / endDate
 const getOffersAdmin = asyncHandler(async (req, res) => {
   const offers = await Offer.find({}).sort({ createdAt: -1 });
   res.json({ success: true, offers });
@@ -205,13 +219,25 @@ const updateOffer = asyncHandler(async (req, res) => {
 });
 
 // ─── ADMIN DASHBOARD ─────────────────────────────────────────────────────────
-const RoomBooking = require('../models/RoomBooking');
+const RoomBooking  = require('../models/RoomBooking');
 const EventBooking = require('../models/EventBooking');
-const { Payment } = require('../models/index');
-const User = require('../models/User');
+const { Payment }  = require('../models/index');
+const User         = require('../models/User');
+
+// Simple 60-second in-memory cache to avoid hammering DB on every admin page load
+let _dashCache     = null;
+let _dashCacheTime = 0;
+const DASH_TTL     = 60 * 1000;
 
 const getDashboardStats = asyncHandler(async (req, res) => {
+  if (_dashCache && Date.now() - _dashCacheTime < DASH_TTL) {
+    return res.json(_dashCache);
+  }
+
   const now = new Date();
+  // Immutable today boundaries — avoid shared-variable mutation bugs
+  const todayStart = new Date(now); todayStart.setHours(0,  0,  0,   0);
+  const todayEnd   = new Date(now); todayEnd.setHours(23, 59, 59, 999);
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
@@ -231,8 +257,8 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     User.countDocuments({ role: 'user' }),
     Review.countDocuments(),
     Review.countDocuments({ isApproved: false }),
-    RoomBooking.countDocuments({ status: 'confirmed', checkIn: { $gte: new Date(now.setHours(0,0,0,0)), $lt: new Date(now.setHours(23,59,59,999)) } }),
-    RoomBooking.countDocuments({ status: 'checked_in', checkOut: { $gte: new Date(now.setHours(0,0,0,0)), $lt: new Date(now.setHours(23,59,59,999)) } }),
+    RoomBooking.countDocuments({ status: 'confirmed',  checkIn:  { $gte: todayStart, $lte: todayEnd } }),
+    RoomBooking.countDocuments({ status: 'checked_in', checkOut: { $gte: todayStart, $lte: todayEnd } }),
   ]);
 
   const recentBookings = await RoomBooking.find()
@@ -246,20 +272,25 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     .limit(5)
     .select('bookingId contactDetails.name eventType eventDetails.eventDate status pricing.totalEstimate');
 
-  res.json({
+  const response = {
     success: true,
     stats: {
-      roomBookings: { total: totalRoomBookings, confirmed: confirmedRoomBookings, pending: pendingRoomBookings },
+      roomBookings:  { total: totalRoomBookings, confirmed: confirmedRoomBookings, pending: pendingRoomBookings },
       eventBookings: { total: totalEventBookings, confirmed: confirmedEventBookings },
-      inquiries: { pending: pendingInquiries },
-      revenue: { total: totalRevenue[0]?.total || 0, thisMonth: monthlyRevenue[0]?.total || 0 },
-      users: totalUsers,
-      reviews: { total: totalReviews, pending: unreviewedCount },
-      today: { checkIns: todayCheckIns, checkOuts: todayCheckOuts },
+      inquiries:     { pending: pendingInquiries },
+      revenue:       { total: totalRevenue[0]?.total || 0, thisMonth: monthlyRevenue[0]?.total || 0 },
+      users:         totalUsers,
+      reviews:       { total: totalReviews, pending: unreviewedCount },
+      today:         { checkIns: todayCheckIns, checkOuts: todayCheckOuts },
     },
     recentBookings,
     recentEvents,
-  });
+  };
+
+  _dashCache     = response;
+  _dashCacheTime = Date.now();
+
+  res.json(response);
 });
 
 module.exports = {

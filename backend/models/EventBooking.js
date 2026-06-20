@@ -62,6 +62,7 @@ const eventBookingSchema = new mongoose.Schema({
   cancellationReason: String,
   followUpDate:       Date,
   assignedTo:         String,
+  quoteSentAt:        Date,
 }, { timestamps: true });
 
 // ── Collision-safe booking ID ─────────────────────────────────────────────────
@@ -77,7 +78,7 @@ eventBookingSchema.pre('save', function (next) {
 eventBookingSchema.index({ 'eventDetails.eventDate': 1, 'eventDetails.venue': 1, status: 1 });
 // Admin list
 eventBookingSchema.index({ status: 1, createdAt: -1 });
-// Quote expiry cron
-eventBookingSchema.index({ status: 1, paymentStatus: 1, updatedAt: 1 });
+// Quote expiry cron — uses dedicated quoteSentAt so admin edits don't reset the 72h timer
+eventBookingSchema.index({ status: 1, paymentStatus: 1, quoteSentAt: 1 });
 
 module.exports = mongoose.model('EventBooking', eventBookingSchema);

@@ -36,7 +36,6 @@ const createBooking = asyncHandler(async (req, res) => {
   }
 
   // ── INVENTORY-AWARE availability check ──────────────────────────────────────
-  // Count how many active bookings overlap the requested window for this room type
   const overlappingCount = await RoomBooking.countDocuments({
     room: roomId,
     status: { $in: ['pending', 'confirmed', 'checked_in'] },
@@ -51,14 +50,22 @@ const createBooking = asyncHandler(async (req, res) => {
     throw new Error('Room not available for the selected dates. Please choose different dates.');
   }
 
-  // ── Pricing ─────────────────────────────────────────────────────────────────
+  // ── Pricing — resolve add-ons from server-side room data (never trust client prices) ──
+  const resolvedAddOns = [];
+  for (const a of (addOns || [])) {
+    const srv = room.addOns.find(x => x.name === a.name);
+    if (!srv) { res.status(400); throw new Error(`Invalid add-on: ${a.name}`); }
+    resolvedAddOns.push({ name: srv.name, price: srv.price, quantity: a.quantity || 1 });
+  }
+
   const basePrice   = room.discountedPrice || room.price;
   const roomPrice   = basePrice * nights;
-  const addOnsTotal = (addOns || []).reduce((sum, a) => sum + (a.price * (a.quantity || 1)), 0);
+  const addOnsTotal = resolvedAddOns.reduce((sum, a) => sum + (a.price * a.quantity), 0);
   const subtotal    = roomPrice + addOnsTotal;
   const taxes       = Math.round(subtotal * 0.12);
   let   discount    = 0;
   let   appliedOffer = null;
+  let   offerId     = null;
 
   // ── Server-side promo code validation & atomic increment ────────────────────
   if (promoCode) {
@@ -86,34 +93,43 @@ const createBooking = asyncHandler(async (req, res) => {
     } else if (offer.type === 'fixed') {
       discount = Math.min(offer.value, subtotal);
     }
+    offerId      = offer._id;
     appliedOffer = { code: offer.code, title: offer.title, discount };
   }
 
   const totalAmount = subtotal + taxes - discount;
   const advancePaid = Math.round(totalAmount * 0.3); // 30% advance
 
-  // ── Create booking ──────────────────────────────────────────────────────────
-  const booking = await RoomBooking.create({
-    room: roomId,
-    user: req.user?._id || undefined,
-    guestDetails,
-    checkIn:  checkInDate,
-    checkOut: checkOutDate,
-    guests,
-    addOns: addOns || [],
-    specialRequests,
-    promoCode:  promoCode ? promoCode.trim().toUpperCase() : undefined,
-    pricing: {
-      roomPrice,
-      addOnsTotal,
-      taxes,
-      discount,
-      totalAmount,
-      advancePaid,
-      balanceDue: totalAmount - advancePaid,
-    },
-    source: 'website',
-  });
+  // ── Create booking — roll back promo if DB write fails ──────────────────────
+  let booking;
+  try {
+    booking = await RoomBooking.create({
+      room: roomId,
+      user: req.user?._id || undefined,
+      guestDetails,
+      checkIn:  checkInDate,
+      checkOut: checkOutDate,
+      guests,
+      addOns: resolvedAddOns,
+      specialRequests,
+      promoCode:  promoCode ? promoCode.trim().toUpperCase() : undefined,
+      pricing: {
+        roomPrice,
+        addOnsTotal,
+        taxes,
+        discount,
+        totalAmount,
+        advancePaid,
+        balanceDue: totalAmount - advancePaid,
+      },
+      source: 'website',
+    });
+  } catch (err) {
+    if (offerId) {
+      await Offer.findByIdAndUpdate(offerId, { $inc: { usedCount: -1 } }).catch(() => {});
+    }
+    throw err;
+  }
 
   await booking.populate('room', 'name type images');
 
@@ -126,7 +142,6 @@ const createBooking = asyncHandler(async (req, res) => {
     createdAt: booking.createdAt,
   });
 
-  // "Booking received — payment pending" email (NOT "confirmed")
   sendBookingReceived(booking).catch(console.error);
   sendAdminNewBookingAlert(booking).catch(console.error);
 
@@ -147,10 +162,9 @@ const getBookingByLookup = asyncHandler(async (req, res) => {
   const booking = await RoomBooking.findOne({ bookingId })
     .populate('room', 'name type images');
 
-  if (!booking) { res.status(404); throw new Error('Booking not found'); }
-
-  if (booking.guestDetails.phone !== phone.trim()) {
-    res.status(403); throw new Error('Phone number does not match this booking');
+  // Return identical error whether booking doesn't exist or phone is wrong (prevents enumeration)
+  if (!booking || booking.guestDetails.phone !== phone.trim()) {
+    res.status(404); throw new Error('Booking not found');
   }
 
   res.json({ success: true, booking });
@@ -186,7 +200,6 @@ const getBookingById = asyncHandler(async (req, res) => {
 // @route PUT /api/bookings/:id/cancel
 const cancelBooking = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  // Accept both MongoDB _id and friendly bookingId (e.g. YPR1A2B3C)
   const booking = mongoose.Types.ObjectId.isValid(id)
     ? await RoomBooking.findById(id)
     : await RoomBooking.findOne({ bookingId: id });
@@ -259,7 +272,6 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
 
   if (!booking) { res.status(404); throw new Error('Booking not found'); }
 
-  // Send confirmation email if admin manually confirms
   if (status === 'confirmed' && booking.paymentStatus !== 'unpaid') {
     sendBookingConfirmation(booking).catch(console.error);
   }

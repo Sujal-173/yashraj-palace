@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const EventBooking = require('../models/EventBooking');
 const EventPackage = require('../models/EventPackage');
+const Settings = require('../models/Settings');
 const { sendEventInquiryConfirmation, sendAdminNewEventAlert } = require('../utils/emailService');
 const socket = require('../utils/socket');
 
@@ -25,7 +26,6 @@ const createEventBooking = asyncHandler(async (req, res) => {
       res.status(404); throw new Error('Event package not found');
     }
 
-    // ── Capacity validation ──────────────────────────────────────────────────
     const guestCount = parseInt(eventDetails?.guestCount, 10);
     if (guestCount < packageData.capacity.min) {
       res.status(400);
@@ -40,7 +40,6 @@ const createEventBooking = asyncHandler(async (req, res) => {
   }
 
   // ── Event date conflict check ────────────────────────────────────────────────
-  // Block if the same venue is confirmed or advance_paid OR has an active quote_sent
   const dateStart = new Date(eventDate); dateStart.setHours(0,  0,  0,   0);
   const dateEnd   = new Date(eventDate); dateEnd.setHours(23, 59, 59, 999);
 
@@ -50,7 +49,6 @@ const createEventBooking = asyncHandler(async (req, res) => {
     status: { $in: ['confirmed', 'advance_paid', 'quote_sent'] },
   });
 
-  // For quote_sent, soft-warn but don't hard-block (inquiry still goes through)
   const isProvisionallyHeld = venueConflict?.status === 'quote_sent';
   const isHardConflict      = venueConflict && !isProvisionallyHeld;
 
@@ -60,10 +58,14 @@ const createEventBooking = asyncHandler(async (req, res) => {
   }
 
   // ── Pricing ─────────────────────────────────────────────────────────────────
-  const addOnsTotal    = (selectedAddOns || []).reduce((s, a) => s + (a.price * (a.quantity || 1)), 0);
-  const subtotal       = packagePrice + addOnsTotal;
-  const taxes          = Math.round(subtotal * 0.12);
-  const totalEstimate  = subtotal + taxes;
+  const addOnsTotal   = (selectedAddOns || []).reduce((s, a) => s + (a.price * (a.quantity || 1)), 0);
+  const subtotal      = packagePrice + addOnsTotal;
+  const taxes         = Math.round(subtotal * 0.12);
+  const totalEstimate = subtotal + taxes;
+
+  // Use Settings.tokenAmount instead of hardcoded value
+  const settings  = await Settings.findOne({}).select('tokenAmount').lean();
+  const tokenAmount = settings?.tokenAmount || 10000;
 
   const booking = await EventBooking.create({
     package: packageId || undefined,
@@ -77,8 +79,8 @@ const createEventBooking = asyncHandler(async (req, res) => {
       addOnsTotal,
       taxes,
       totalEstimate,
-      tokenAmount: 10000,
-      balanceDue: totalEstimate - 10000,
+      tokenAmount,
+      balanceDue: totalEstimate - tokenAmount,
       isCustomQuote: !packageId,
     },
     status: 'inquiry',
@@ -86,7 +88,6 @@ const createEventBooking = asyncHandler(async (req, res) => {
 
   await booking.populate('package', 'name category capacity venue');
 
-  // Real-time admin notification
   socket.emitToAdmin('new_event', {
     bookingId: booking.bookingId,
     guestName: contactDetails?.name,
@@ -126,16 +127,15 @@ const checkEventDate = asyncHandler(async (req, res) => {
 
   const existing = await EventBooking.countDocuments(query);
 
-  // Also check provisional holds
   const provisionalQuery = {
     'eventDetails.eventDate': { $gte: dateStart, $lte: dateEnd },
     status: 'quote_sent',
-    updatedAt: { $gte: new Date(Date.now() - 72 * 60 * 60 * 1000) },
+    quoteSentAt: { $gte: new Date(Date.now() - 72 * 60 * 60 * 1000) },
   };
   if (venue) provisionalQuery['eventDetails.venue'] = venue;
   const provisional = await EventBooking.countDocuments(provisionalQuery);
 
-  const fullyBooked = existing > 0;
+  const fullyBooked       = existing > 0;
   const provisionallyHeld = !fullyBooked && provisional > 0;
 
   res.json({
@@ -194,13 +194,17 @@ const updateEventStatus = asyncHandler(async (req, res) => {
     res.status(400); throw new Error('Invalid status value');
   }
 
+  const settings   = await Settings.findOne({}).select('tokenAmount').lean();
+  const tokenAmount = settings?.tokenAmount || 10000;
+
   const update = {
     status,
     ...(adminNotes     && { adminNotes }),
-    ...(totalEstimate  && { 'pricing.totalEstimate': totalEstimate, 'pricing.balanceDue': totalEstimate - 10000 }),
+    ...(totalEstimate  && { 'pricing.totalEstimate': totalEstimate, 'pricing.balanceDue': totalEstimate - tokenAmount }),
     ...(followUpDate   && { followUpDate }),
-    ...(status === 'confirmed'    && { confirmedAt: new Date() }),
-    ...(status === 'cancelled'    && { cancelledAt: new Date() }),
+    ...(status === 'quote_sent'  && { quoteSentAt: new Date() }),
+    ...(status === 'confirmed'   && { confirmedAt: new Date() }),
+    ...(status === 'cancelled'   && { cancelledAt: new Date() }),
   };
 
   const booking = await EventBooking.findByIdAndUpdate(req.params.id, update, { new: true })
