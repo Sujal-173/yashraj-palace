@@ -1,0 +1,79 @@
+modules = ["nodejs-20", "web", "nix"]
+[nix]
+channel = "stable-25_05"
+
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Backend API"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd frontend && npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Backend API"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && npm run dev"
+waitForPort = 3000
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3001
+
+[[ports]]
+localPort = 23636
+externalPort = 3003
+
+[userenv]
+
+[userenv.shared]
+PORT = "3000"
+NODE_ENV = "development"
+JWT_EXPIRE = "30d"
+WHATSAPP_NUMBER = "918827039565"
+FRONTEND_URL = "http://localhost:5000"
+MAX_FILE_SIZE = "5242880"
+UPLOAD_PATH = "./uploads"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = "587"
+EMAIL_FROM = "Yashraj Palace <noreply@yashrajpalace.com>"
+MONGO_URI = "mongodb+srv://yashraj_palace:yashraj_palace123@cluster0.20jhbpa.mongodb.net/"
+JWT_SECRET = "39990a32b2e957898e0e591556ff819aed4284cc765f98914e1527c17eb1b6d5"

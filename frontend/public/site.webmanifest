@@ -1,0 +1,19 @@
+{
+  "name": "Yashraj Palace – Hotel, Wedding Garden & Events",
+  "short_name": "Yashraj Palace",
+  "description": "Premium hotel, wedding garden and event venue near Maheshwar and Mandleshwar, Madhya Pradesh.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#6B1A2B",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "en-IN"
+}

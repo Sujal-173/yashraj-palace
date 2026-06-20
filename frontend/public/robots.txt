@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /my-bookings
+Disallow: /booking-confirmation/
+
+Sitemap: https://www.yashrajpalace.com/sitemap.xml
