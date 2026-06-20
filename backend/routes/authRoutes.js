@@ -17,10 +17,10 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Forgot/reset password: more lenient — 20 attempts per 15 minutes
+// Forgot/reset password: more lenient — 10 attempts per 15 minutes
 const resetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 10,
   message: { success: false, message: 'Too many password reset requests. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -35,3 +35,4 @@ router.put('/profile',         protect, updateProfile);
 router.put('/change-password', protect, changePassword);
 
 module.exports = router;
+
