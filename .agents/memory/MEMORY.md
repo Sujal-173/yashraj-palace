@@ -1,0 +1,1 @@
+- [Yashraj Palace audit fixes](yashraj-audit.md) — phases 1–7 audit applied; key patterns to keep consistent across future edits.

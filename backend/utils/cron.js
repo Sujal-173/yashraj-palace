@@ -10,14 +10,21 @@ const expireUnpaidRoomBookings = cron.schedule('*/5 * * * *', async () => {
   try {
     const cutoff = new Date(Date.now() - PENDING_BOOKING_TIMEOUT_MINS * 60 * 1000);
 
-    // Capture promo codes BEFORE cancellation so we can restore usage counts
-    const withPromo = await RoomBooking.find({
-      status: 'pending', paymentStatus: 'unpaid', createdAt: { $lt: cutoff },
-      promoCode: { $exists: true, $ne: null },
-    }).select('promoCode').lean();
+    // Step 1: Find the specific booking IDs to expire (locks in which bookings we will cancel)
+    const expiredBookings = await RoomBooking.find({
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      createdAt: { $lt: cutoff },
+    }).select('_id promoCode').lean();
 
+    if (expiredBookings.length === 0) return;
+
+    const ids = expiredBookings.map(b => b._id);
+
+    // Step 2: Cancel ONLY those specific IDs — re-check status so we don't cancel a booking
+    // that was just paid between Step 1 and Step 2
     const result = await RoomBooking.updateMany(
-      { status: 'pending', paymentStatus: 'unpaid', createdAt: { $lt: cutoff } },
+      { _id: { $in: ids }, status: 'pending', paymentStatus: 'unpaid' },
       {
         $set: {
           status: 'cancelled',
@@ -30,10 +37,18 @@ const expireUnpaidRoomBookings = cron.schedule('*/5 * * * *', async () => {
     if (result.modifiedCount > 0) {
       console.log(`⏰ Cron: auto-cancelled ${result.modifiedCount} unpaid room booking(s)`);
 
-      // Restore promo code usage counts for cancelled bookings
-      if (withPromo.length > 0) {
+      // Step 3: Find which ones were ACTUALLY cancelled (some may have been paid between steps)
+      // so we only restore promos for bookings that are now truly cancelled
+      const actuallyCancelled = await RoomBooking.find({
+        _id: { $in: ids },
+        status: 'cancelled',
+        promoCode: { $exists: true, $ne: null },
+        cancelledAt: { $gte: new Date(Date.now() - 30 * 1000) }, // cancelled in last 30s
+      }).select('promoCode').lean();
+
+      if (actuallyCancelled.length > 0) {
         const codeMap = {};
-        withPromo.forEach(b => {
+        actuallyCancelled.forEach(b => {
           if (b.promoCode) codeMap[b.promoCode] = (codeMap[b.promoCode] || 0) + 1;
         });
         for (const [code, count] of Object.entries(codeMap)) {

@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire:  Date,
 }, { timestamps: true });
 
+// Index for fast password-reset token lookup (tokens are queried per-request)
+userSchema.index({ resetPasswordToken: 1 }, { sparse: true });
+
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);

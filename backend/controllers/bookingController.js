@@ -3,9 +3,13 @@ const mongoose = require('mongoose');
 const asyncHandler = require('express-async-handler');
 const RoomBooking = require('../models/RoomBooking');
 const Room = require('../models/Room');
+const Settings = require('../models/Settings');
 const { Offer } = require('../models/index');
 const { sendBookingReceived, sendBookingConfirmation, sendAdminNewBookingAlert } = require('../utils/emailService');
 const socket = require('../utils/socket');
+
+// Escape user-supplied strings before inserting into MongoDB $regex to prevent ReDoS
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Collision-safe booking ID using crypto
 const generateBookingId = (prefix) =>
@@ -98,7 +102,10 @@ const createBooking = asyncHandler(async (req, res) => {
   }
 
   const totalAmount = subtotal + taxes - discount;
-  const advancePaid = Math.round(totalAmount * 0.3); // 30% advance
+  // Fetch advance percent from Settings so admin can control it
+  const settings = await Settings.findOne({}).select('advancePercent').lean();
+  const advancePercent = (settings?.advancePercent || 30) / 100;
+  const advancePaid = Math.round(totalAmount * advancePercent);
 
   // ── Create booking — roll back promo if DB write fails ──────────────────────
   let booking;
@@ -216,10 +223,19 @@ const cancelBooking = asyncHandler(async (req, res) => {
     res.status(400); throw new Error(`Booking is already ${booking.status}`);
   }
 
+  const prevStatus = booking.status;
   booking.status = 'cancelled';
   booking.cancellationReason = req.body.reason || 'Cancelled by guest';
   booking.cancelledAt = new Date();
   await booking.save();
+
+  // Restore promo code usage count when a booking is cancelled manually
+  if (prevStatus !== 'cancelled' && booking.promoCode) {
+    await Offer.findOneAndUpdate(
+      { code: booking.promoCode },
+      { $inc: { usedCount: -1 } }
+    ).catch(console.error);
+  }
 
   socket.emitToAdmin('booking_updated', { bookingId: booking.bookingId, status: 'cancelled' });
 
@@ -235,10 +251,11 @@ const getAllBookings = asyncHandler(async (req, res) => {
   const query = {};
   if (status) query.status = status;
   if (search) {
+    const safeSearch = escapeRegex(String(search).slice(0, 100));
     query.$or = [
-      { bookingId:           { $regex: search, $options: 'i' } },
-      { 'guestDetails.name': { $regex: search, $options: 'i' } },
-      { 'guestDetails.phone':{ $regex: search, $options: 'i' } },
+      { bookingId:           { $regex: safeSearch, $options: 'i' } },
+      { 'guestDetails.name': { $regex: safeSearch, $options: 'i' } },
+      { 'guestDetails.phone':{ $regex: safeSearch, $options: 'i' } },
     ];
   }
   const total    = await RoomBooking.countDocuments(query);

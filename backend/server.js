@@ -22,6 +22,7 @@ if (!process.env.RAZORPAY_WEBHOOK_SECRET) {
   console.warn('⚠ RAZORPAY_WEBHOOK_SECRET not set — webhook endpoint will reject all requests');
 }
 
+const jwt = require('jsonwebtoken');
 const socketUtil = require('./utils/socket');
 const { startCronJobs } = require('./utils/cron');
 
@@ -51,9 +52,19 @@ const corsOptions = {
 const io = new Server(server, { cors: corsOptions });
 socketUtil.init(io);
 
-// Only allow authenticated admin joins (basic room protection)
+// Socket.IO: require valid admin/staff JWT before allowing join of admin_room
 io.on('connection', (socket) => {
-  socket.on('join_admin',  () => socket.join('admin_room'));
+  socket.on('join_admin', ({ token } = {}) => {
+    if (!token) return;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (['admin', 'staff'].includes(decoded.role)) {
+        socket.join('admin_room');
+      }
+    } catch {
+      // Invalid or expired token — silently ignore, do not join admin_room
+    }
+  });
   socket.on('leave_admin', () => socket.leave('admin_room'));
 });
 
@@ -85,17 +96,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── Static files (uploads) ─────────────────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// ── Serve frontend in production ───────────────────────────────────────────────
-// const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-// app.use(express.static(frontendPath));
-
-// // SPA fallback — send index.html for any non-API route
-// app.get('*', (req, res) => {
-//   if (!req.path.startsWith('/api')) {
-//     res.sendFile(path.join(frontendPath, 'index.html'));
-//   }
-// });
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth',      require('./routes/authRoutes'));

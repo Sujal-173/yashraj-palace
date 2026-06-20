@@ -20,7 +20,8 @@ export const SocketProvider = ({ children }) => {
     socketRef.current = socket
 
     if (isAdmin) {
-      socket.emit('join_admin')
+      const token = localStorage.getItem('yp_token')
+      socket.emit('join_admin', { token })
     }
 
     socket.on('new_inquiry', (data) => {

@@ -11,12 +11,6 @@ import { FiCheck, FiUsers, FiMaximize2, FiStar, FiPhone } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import { useSiteSettings } from '../context/SiteSettingsContext'
 
-const STATIC_ROOMS = {
-  'deluxe-room':  { _id: 'deluxe', slug: 'deluxe-room',  name: 'Deluxe Room',  type: 'deluxe',  price: 1800, capacity: 2, bedType: 'Queen Bed', size: 280, description: 'A well-appointed room with a queen bed, garden or courtyard view, premium linens, and all essentials for a restful stay. Perfect for couples and solo travellers visiting Maheshwar and the Narmada Ghats.', amenities: ['Free Wi-Fi','AC','LED TV','Hot & Cold Water','24/7 Room Service','Daily Housekeeping','Free Parking','Power Backup'], policies: { checkIn: '12:00 PM', checkOut: '11:00 AM', cancellation: 'Free cancellation up to 24 hours before check-in', extraBed: 500, breakfastPrice: 250 } },
-  'premium-room': { _id: 'premium', slug: 'premium-room', name: 'Premium Room', type: 'premium', price: 2500, capacity: 2, bedType: 'King Bed',  size: 380, description: 'Elevated comfort with a king-size bed, a dedicated sitting area, designer bathroom with rainfall shower, and complimentary breakfast. Ideal for a special stay or romantic getaway near Maheshwar Fort.', amenities: ['Free Wi-Fi','AC','LED TV','Hot & Cold Water','Breakfast Included','Mini Fridge','24/7 Room Service','Daily Housekeeping','Free Parking','Power Backup'], policies: { checkIn: '12:00 PM', checkOut: '11:00 AM', cancellation: 'Free cancellation up to 48 hours before check-in', extraBed: 600, breakfastPrice: 0 } },
-  'family-suite': { _id: 'suite',   slug: 'family-suite', name: 'Family Suite', type: 'suite',   price: 3800, capacity: 4, bedType: 'Twin Beds', size: 560, description: 'Spacious and warm — a separate living area, two beds, and thoughtful touches that make family stays truly memorable. The suite comfortably fits a family of four with extra space for children.', amenities: ['Free Wi-Fi','AC','LED TV','Hot & Cold Water','Living Room','Mini Kitchen','Mini Fridge','24/7 Room Service','Daily Housekeeping','Free Parking','Power Backup'], policies: { checkIn: '12:00 PM', checkOut: '11:00 AM', cancellation: 'Free cancellation up to 48 hours before check-in', extraBed: 700, breakfastPrice: 250 } },
-}
-
 export default function RoomDetailPage() {
   const { slug }          = useParams()
   const [searchParams]    = useSearchParams()
@@ -49,10 +43,8 @@ export default function RoomDetailPage() {
         const dates = await roomsAPI.getUnavailableDates(data.room._id)
         setUnavailDates(dates.data.unavailableDates.map(d => new Date(d)))
       } catch {
-        // Use static fallback
-        const staticRoom = STATIC_ROOMS[slug]
-        if (staticRoom) setRoom(staticRoom)
-        else navigate('/rooms')
+        toast.error('Room not found or unavailable')
+        navigate('/rooms', { replace: true })
       }
       setLoading(false)
     }

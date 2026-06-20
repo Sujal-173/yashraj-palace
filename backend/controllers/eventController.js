@@ -6,6 +6,9 @@ const Settings = require('../models/Settings');
 const { sendEventInquiryConfirmation, sendAdminNewEventAlert } = require('../utils/emailService');
 const socket = require('../utils/socket');
 
+// Escape user-supplied strings before inserting into MongoDB $regex to prevent ReDoS
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // @desc  Create event booking / inquiry
 // @route POST /api/events/book
 const createEventBooking = asyncHandler(async (req, res) => {
@@ -57,8 +60,19 @@ const createEventBooking = asyncHandler(async (req, res) => {
     throw new Error('This date is already booked. Please choose a different date or contact us for availability.');
   }
 
-  // ── Pricing ─────────────────────────────────────────────────────────────────
-  const addOnsTotal   = (selectedAddOns || []).reduce((s, a) => s + (a.price * (a.quantity || 1)), 0);
+  // ── Pricing — resolve add-on prices from server-side package data (never trust client prices) ──
+  const resolvedAddOns = [];
+  for (const a of (selectedAddOns || [])) {
+    if (packageData) {
+      const srv = packageData.addOns?.find(x => x.name === a.name);
+      if (!srv) { res.status(400); throw new Error(`Invalid add-on: ${a.name}`); }
+      resolvedAddOns.push({ name: srv.name, price: srv.price, quantity: a.quantity || 1 });
+    } else {
+      // Custom quote (no package) — accept add-on name only, price set to 0 for admin to quote
+      resolvedAddOns.push({ name: String(a.name).slice(0, 100), price: 0, quantity: a.quantity || 1 });
+    }
+  }
+  const addOnsTotal   = resolvedAddOns.reduce((s, a) => s + (a.price * a.quantity), 0);
   const subtotal      = packagePrice + addOnsTotal;
   const taxes         = Math.round(subtotal * 0.12);
   const totalEstimate = subtotal + taxes;
@@ -72,7 +86,7 @@ const createEventBooking = asyncHandler(async (req, res) => {
     eventType,
     contactDetails,
     eventDetails: { ...eventDetails, venue: packageData?.venue },
-    selectedAddOns: selectedAddOns || [],
+    selectedAddOns: resolvedAddOns,
     user: req.user?._id || undefined,
     pricing: {
       packagePrice,
@@ -169,10 +183,11 @@ const getAllEventBookings = asyncHandler(async (req, res) => {
   const query = {};
   if (status) query.status = status;
   if (search) {
+    const safeSearch = escapeRegex(String(search).slice(0, 100));
     query.$or = [
-      { bookingId: { $regex: search, $options: 'i' } },
-      { 'contactDetails.name':  { $regex: search, $options: 'i' } },
-      { 'contactDetails.phone': { $regex: search, $options: 'i' } },
+      { bookingId: { $regex: safeSearch, $options: 'i' } },
+      { 'contactDetails.name':  { $regex: safeSearch, $options: 'i' } },
+      { 'contactDetails.phone': { $regex: safeSearch, $options: 'i' } },
     ];
   }
   const total    = await EventBooking.countDocuments(query);

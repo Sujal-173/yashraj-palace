@@ -22,8 +22,17 @@ const lookupLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limit for booking creation — prevents room-availability flooding attacks
+const bookingCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Too many booking attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Public — guest checkout allowed, user is optional
-r.post('/', validateCreateBooking, createBooking);
+r.post('/', bookingCreateLimiter, validateCreateBooking, createBooking);
 
 // Public — lookup by bookingId + phone (rate limited)
 r.get('/lookup', lookupLimiter, validateGuestLookup, getBookingByLookup);

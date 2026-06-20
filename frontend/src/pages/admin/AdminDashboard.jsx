@@ -58,7 +58,7 @@ export default function AdminDashboard() {
     setLoading(true)
     adminAPI.getDashboard()
       .then(r => setData(r.data))
-      .catch(() => {})
+      .catch(() => toast.error('Failed to load dashboard data'))
       .finally(() => setLoading(false))
   }, [])
 

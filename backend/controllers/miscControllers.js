@@ -3,6 +3,9 @@ const { Review, Gallery, Inquiry, Offer } = require('../models/index');
 const { sendAdminNewInquiryAlert } = require('../utils/emailService');
 const socket = require('../utils/socket');
 
+// Escape user-supplied strings before inserting into MongoDB $regex to prevent ReDoS
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ─── REVIEWS ────────────────────────────────────────────────────────────────
 
 const createReview = asyncHandler(async (req, res) => {
