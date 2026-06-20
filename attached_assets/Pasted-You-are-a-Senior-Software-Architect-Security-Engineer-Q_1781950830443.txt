@@ -1,0 +1,257 @@
+You are a Senior Software Architect, Security Engineer, QA Engineer, Backend Engineer and Production Reviewer.
+
+DO NOT FIX ANYTHING YET.
+
+FIRST TASK:
+Perform a complete repository audit and identify every possible issue before making a single code change.
+
+IMPORTANT:
+
+* Do not generate code.
+* Do not propose refactors unless necessary.
+* Do not modify files.
+* Only inspect and report.
+* Be extremely critical.
+* Assume the project is going into production tomorrow.
+* Minimize token usage.
+* Focus on real issues only.
+* Do not invent bugs.
+* If uncertain, mark as "Needs Verification".
+
+PHASE 1 — PROJECT MAPPING
+
+Scan entire repository.
+
+Generate:
+
+* Folder structure overview
+* Route map
+* API map
+* Database model map
+* Context/provider map
+* Middleware map
+* Authentication flow map
+* Booking flow map
+* Event booking flow map
+
+Identify:
+
+* Dead code
+* Unused files
+* Duplicate files
+* Duplicate logic
+* Circular dependencies
+* Broken imports
+* Broken exports
+* Runtime crash points
+
+PHASE 2 — LOGIC AUDIT
+
+Trace every business flow.
+
+Review:
+
+* User registration
+* User login
+* Admin login
+* JWT flow
+* Role authorization
+* Room booking
+* Availability checks
+* Inventory management
+* Event booking
+* Inquiry submission
+* Offers & promo codes
+* Gallery management
+* Review management
+* Dashboard statistics
+* Settings management
+
+Find:
+
+* Broken logic
+* Incorrect assumptions
+* Missing validations
+* Race conditions
+* State inconsistencies
+* Double booking risks
+* Data corruption risks
+* Inventory mismatch risks
+* Promo code abuse possibilities
+
+PHASE 3 — LOGIN FAILURE INVESTIGATION
+
+Users and Admins cannot login.
+
+Find exact root cause.
+
+Investigate:
+
+Frontend:
+
+* Login page
+* API request
+* AuthContext
+* ProtectedRoute
+* Token storage
+* Token retrieval
+* Role checks
+
+Backend:
+
+* Login route
+* Login controller
+* JWT generation
+* JWT verification
+* Password comparison
+* User lookup
+* User status validation
+
+Environment:
+
+* JWT_SECRET
+* CLIENT_URL
+* CORS config
+* API base URLs
+
+Database:
+
+* Password hashes
+* User roles
+* User status
+
+Provide:
+
+ROOT CAUSE
+EVIDENCE
+LIKELIHOOD SCORE
+
+PHASE 4 — SECURITY AUDIT
+
+Check:
+
+* JWT implementation
+* Authentication
+* Authorization
+* XSS
+* CSRF
+* NoSQL injection
+* Mass assignment
+* Price manipulation
+* Input validation
+* Sensitive data exposure
+* Rate limiting
+* Secret leakage
+* Booking enumeration
+* File upload vulnerabilities
+
+Rank:
+Critical / High / Medium / Low
+
+PHASE 5 — DATABASE AUDIT
+
+Review all models.
+
+Check:
+
+* Missing indexes
+* Slow queries
+* Incorrect relations
+* Duplicate storage
+* Derived field storage
+* Query inefficiencies
+* Missing constraints
+
+PHASE 6 — FRONTEND AUDIT
+
+Check:
+
+* Routing issues
+* State management
+* React anti-patterns
+* Infinite re-renders
+* Stale data
+* Error handling
+* Loading states
+* Responsive issues
+* Accessibility issues
+
+PHASE 7 — BACKEND AUDIT
+
+Check:
+
+* Controllers
+* Middleware
+* Services
+* Utilities
+* Cron jobs
+
+Find:
+
+* Missing validation
+* Missing error handling
+* Date bugs
+* Transaction issues
+* Broken assumptions
+
+PHASE 8 — SEO AUDIT
+
+Check:
+
+* Metadata
+* OpenGraph
+* Structured Data
+* Sitemap
+* Robots.txt
+* Canonicals
+
+PHASE 9 — PERFORMANCE AUDIT
+
+Check:
+
+* Expensive DB queries
+* N+1 patterns
+* Repeated requests
+* Large React components
+* Missing caching
+* Heavy dashboard endpoints
+
+PHASE 10 — PRODUCTION READINESS
+
+Check:
+
+* Environment variables
+* Build process
+* Deployment configs
+* Logging
+* Monitoring
+* Backup strategy
+* Failure recovery
+
+FINAL REPORT FORMAT
+
+🔴 Critical Issues
+
+🟠 High Priority Issues
+
+🟡 Medium Priority Issues
+
+🟢 Low Priority Issues
+
+LOGIN ROOT CAUSE ANALYSIS
+
+TOP 20 FIXES REQUIRED BEFORE LAUNCH
+
+SECURITY SCORE /10
+
+PERFORMANCE SCORE /10
+
+ARCHITECTURE SCORE /10
+
+CODE QUALITY SCORE /10
+
+PRODUCTION READINESS SCORE /10
+
+Do NOT fix anything.
+
+Only produce the most accurate audit possible.
