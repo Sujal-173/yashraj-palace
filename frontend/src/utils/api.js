@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://yashraj-palace.onrender.com/api',
+  baseURL: '/api',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 })
