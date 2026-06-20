@@ -28,17 +28,26 @@ const FOOTER = `
   </div>`;
 
 const sendEmail = async ({ to, subject, html }) => {
-  if (!to || !process.env.EMAIL_USER) return;
+  if (!to) {
+    console.warn('⚠ sendEmail called without recipient (to)');
+    return;
+  }
+  if (!process.env.EMAIL_USER) {
+    console.warn('⚠ sendEmail skipped — EMAIL_USER is not configured in .env');
+    return;
+  }
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || `Yashraj Palace <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
     });
-    console.log(`✉ Email sent to ${to}`);
+    console.log(`✉ Email sent to ${to} | MessageID: ${info.messageId}`);
   } catch (err) {
-    console.error('Email error:', err.message);
+    console.error('❌ Email failed to send:', err.message);
+    // Re-throw so callers' .catch() handlers can also react / log
+    throw err;
   }
 };
 
