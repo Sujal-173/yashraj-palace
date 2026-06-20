@@ -23,7 +23,7 @@ const RESTAURANT_SCHEMA = {
   servesCuisine: ['Indian', 'Madhya Pradesh', 'North Indian', 'South Indian'],
   priceRange: '₹₹',
   url: 'https://www.yashrajpalace.com/dining',
-  telephone: '+91-70000-00000',
+  telephone: '+91-88270-39565',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Near Mandleshwar',

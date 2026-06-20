@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { FiCheck } from 'react-icons/fi'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 
 const SEO_CONTENT = {
   'hotel-in-maheshwar': {
@@ -32,7 +33,7 @@ const SEO_CONTENT = {
   },
   'marriage-garden-in-mandleshwar': {
     title: 'Marriage Garden in Mandleshwar – Yashraj Palace | Event Venue',
-    metaDesc: 'Top marriage garden in Mandleshwar. Yashraj Palace — 1000 guests, floral decor, catering, parking, rooms. Call +91 70000 00000 to book.',
+    metaDesc: 'Top marriage garden in Mandleshwar. Yashraj Palace — 1000 guests, floral decor, catering, parking, rooms. Call +91 88270 39565 to book.',
     h1: 'Marriage Garden in Mandleshwar',
     intro: 'Yashraj Palace is Mandleshwar\'s most trusted marriage garden and event venue. Hundreds of weddings, receptions, and celebrations have been hosted here — making it the region\'s first choice for families planning a grand function. Our marriage garden combines open lawns, a covered banquet hall, and full-service event management.',
     highlights: ['Centrally located in Mandleshwar','Open lawn + covered hall — combined capacity 1,000','Floral decoration, stage, mandap setup','Catering for 100 to 1,000 guests','Free parking for 100+ vehicles','Easy instalment & token payment system'],
@@ -83,6 +84,7 @@ const COMMON_FEATURES = [
 ]
 
 export default function SeoLandingPage({ slug }) {
+  const { phone, phoneHref, waHref } = useSiteSettings()
   const content = SEO_CONTENT[slug]
 
   if (!content) return (
@@ -104,7 +106,7 @@ export default function SeoLandingPage({ slug }) {
           name: 'Yashraj Palace',
           description: content.metaDesc,
           address: { '@type': 'PostalAddress', streetAddress: 'Near Mandleshwar', addressLocality: 'Mandleshwar', addressRegion: 'Madhya Pradesh', postalCode: '451221', addressCountry: 'IN' },
-          telephone: '+917000000000',
+          telephone: '+918827039565',
           url: 'https://yashrajpalace.com',
           priceRange: '₹₹',
           starRating: { '@type': 'Rating', ratingValue: '4' },
@@ -197,8 +199,8 @@ export default function SeoLandingPage({ slug }) {
             </div>
             <div className="space-y-3">
               <Link to={content.cta1.to} className="btn-gold block text-center text-sm py-3.5 px-6">{content.cta1.label}</Link>
-              <a href="tel:+917000000000" className="border-2 border-white/40 text-white block text-center py-3 rounded font-semibold text-sm hover:bg-white/10 transition-all">📞 +91 70000 00000</a>
-              <a href="https://wa.me/917000000000" className="bg-green-500 text-white block text-center py-3 rounded font-semibold text-sm hover:bg-green-600 transition-all">💬 WhatsApp Now</a>
+              <a href={phoneHref} className="border-2 border-white/40 text-white block text-center py-3 rounded font-semibold text-sm hover:bg-white/10 transition-all">📞 {phone}</a>
+              <a href={waHref} className="bg-green-500 text-white block text-center py-3 rounded font-semibold text-sm hover:bg-green-600 transition-all">💬 WhatsApp Now</a>
             </div>
           </div>
         </section>

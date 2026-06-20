@@ -8,6 +8,7 @@ import { useRazorpay } from '../hooks/useRazorpay'
 import toast from 'react-hot-toast'
 import { FiCheck, FiCalendar, FiUsers } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 
 const EVENT_TYPES = ['wedding','reception','engagement','birthday','anniversary','corporate','family','cultural']
 const ADD_ONS_LIST = [
@@ -25,6 +26,7 @@ export default function EventBookPage() {
   const [sp] = useSearchParams()
   const navigate = useNavigate()
   const { initiatePayment } = useRazorpay()
+  const { phone, phoneHref, waHref } = useSiteSettings()
 
   const [step, setStep]       = useState(1)
   const [packages, setPackages] = useState([])
@@ -269,8 +271,8 @@ export default function EventBookPage() {
               </div>
               <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
                 <div className="font-semibold text-charcoal mb-3">Need Help?</div>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp w-full justify-center text-sm mb-2"><FaWhatsapp size={16}/> WhatsApp Us</a>
-                <a href="tel:+917000000000" className="btn-outline w-full text-center text-sm py-2.5">📞 +91 70000 00000</a>
+                <a href={waHref} className="btn-whatsapp w-full justify-center text-sm mb-2"><FaWhatsapp size={16}/> WhatsApp Us</a>
+                <a href={phoneHref} className="btn-outline w-full text-center text-sm py-2.5">📞 {phone}</a>
                 <p className="text-xs text-charcoal-muted text-center mt-2">Available 9 AM – 10 PM daily</p>
               </div>
             </div>

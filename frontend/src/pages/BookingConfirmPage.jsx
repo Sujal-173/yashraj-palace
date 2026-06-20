@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { bookingsAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 import { FaWhatsapp } from 'react-icons/fa'
 import { FiPhone } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -10,6 +11,7 @@ import toast from 'react-hot-toast'
 export default function BookingConfirmPage() {
   const { bookingId }    = useParams()
   const { user }         = useAuth()
+  const { phoneHref, waHref } = useSiteSettings()
   const [data, setData]  = useState(null)
   const [loading, setLoading]  = useState(true)
   const [showLookup, setShowLookup] = useState(false)
@@ -107,7 +109,7 @@ export default function BookingConfirmPage() {
                 </button>
               </form>
               <p className="text-center text-xs text-charcoal-muted mt-4">
-                Can't find it? <a href="https://wa.me/917000000000" className="text-maroon font-semibold">WhatsApp us</a>
+                Can't find it? <a href={waHref} className="text-maroon font-semibold">WhatsApp us</a>
               </p>
             </div>
           )}
@@ -176,10 +178,10 @@ export default function BookingConfirmPage() {
               </p>
 
               <div className="flex gap-3 justify-center">
-                <a href="https://wa.me/917000000000" className="btn-whatsapp text-sm px-5">
+                <a href={waHref} className="btn-whatsapp text-sm px-5">
                   <FaWhatsapp size={15}/> WhatsApp Us
                 </a>
-                <a href="tel:+917000000000" className="btn-outline text-sm px-5 flex items-center gap-1.5">
+                <a href={phoneHref} className="btn-outline text-sm px-5 flex items-center gap-1.5">
                   <FiPhone size={14}/> Call
                 </a>
               </div>

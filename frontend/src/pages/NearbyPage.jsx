@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { MapPin, Clock, Crown } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 
 const ATTRACTIONS = [
   {
@@ -72,6 +73,7 @@ const NEARBY_SCHEMA = {
 }
 
 export default function NearbyPage() {
+  const { waHref } = useSiteSettings()
   return (
     <>
       <Helmet>
@@ -219,7 +221,7 @@ export default function NearbyPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/book-room" className="btn-gold btn-lg">Book Your Room</Link>
-            <a href="https://wa.me/917000000000" className="btn-whatsapp btn-lg">
+            <a href={waHref} className="btn-whatsapp btn-lg">
               <FaWhatsapp size={14} /> Ask on WhatsApp
             </a>
           </div>

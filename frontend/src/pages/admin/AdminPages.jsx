@@ -693,8 +693,8 @@ export function AdminSettings() {
   const [form, setForm]     = useState({
     hotelName: 'Yashraj Palace',
     tagline: 'Heritage Meets Luxury',
-    phone: '+91 70000 00000',
-    whatsapp: '917000000000',
+    phone: '+91 88270 39565',
+    whatsapp: '918827039565',
     email: 'info@yashrajpalace.com',
     address: 'Near Mandleshwar, Khargone District, Madhya Pradesh – 451221',
     checkIn: '12:00 PM',
@@ -710,8 +710,8 @@ export function AdminSettings() {
         setForm({
           hotelName:      s.hotelName      || 'Yashraj Palace',
           tagline:        s.tagline        || 'Heritage Meets Luxury',
-          phone:          s.phone          || '+91 70000 00000',
-          whatsapp:       s.whatsapp       || '917000000000',
+          phone:          s.phone          || '+91 88270 39565',
+          whatsapp:       s.whatsapp       || '918827039565',
           email:          s.email          || 'info@yashrajpalace.com',
           address:        s.address        || 'Near Mandleshwar, Khargone District, Madhya Pradesh – 451221',
           checkIn:        s.checkIn        || '12:00 PM',

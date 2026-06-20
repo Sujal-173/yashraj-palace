@@ -120,7 +120,7 @@ const sendEventInquiryConfirmation = async (booking) => {
         <tr style="background:#FAF7F2"><td style="padding:10px;font-weight:bold;color:#6B1A2B">Event Date</td><td style="padding:10px">${new Date(booking.eventDetails.eventDate).toDateString()}</td></tr>
         <tr><td style="padding:10px;font-weight:bold;color:#6B1A2B">Guest Count</td><td style="padding:10px">${booking.eventDetails.guestCount}</td></tr>
         ${booking.pricing.totalEstimate ? `<tr style="background:#FAF7F2"><td style="padding:10px;font-weight:bold;color:#6B1A2B">Estimated Cost</td><td style="padding:10px">₹${booking.pricing.totalEstimate.toLocaleString('en-IN')}</td></tr>` : ''}
-        <tr><td style="padding:10px;font-weight:bold;color:#6B1A2B">Token to Confirm</td><td style="padding:10px">₹10,000</td></tr>
+        <tr><td style="padding:10px;font-weight:bold;color:#6B1A2B">Token to Confirm</td><td style="padding:10px">₹${(booking.pricing?.tokenAmount || 10000).toLocaleString('en-IN')}</td></tr>
       </table>
       <div style="background:#FFF9EE;border:1px solid #C9A84C;border-radius:6px;padding:14px;margin:20px 0">
         <p style="margin:0;font-weight:bold;color:#6B1A2B">Our team will reach out on: ${esc(booking.contactDetails.phone)}</p>

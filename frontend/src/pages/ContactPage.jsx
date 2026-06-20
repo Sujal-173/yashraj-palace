@@ -11,7 +11,7 @@ const CONTACT_SCHEMA = {
   '@type': 'Hotel',
   name: 'Yashraj Palace',
   url: 'https://www.yashrajpalace.com/',
-  telephone: '+91-70000-00000',
+  telephone: '+91-88270-39565',
   email: 'info@yashrajpalace.com',
   address: {
     '@type': 'PostalAddress',
@@ -73,11 +73,11 @@ export default function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact Yashraj Palace – Hotel &amp; Event Venue | Maheshwar | +91 70000 00000</title>
-        <meta name="description" content="Contact Yashraj Palace for room bookings, wedding planning, and event inquiries. Call +91 70000 00000 or WhatsApp. Near Maheshwar and Mandleshwar, Madhya Pradesh. We reply within 2 hours." />
+        <title>Contact Yashraj Palace – Hotel &amp; Event Venue | Maheshwar | {phone}</title>
+        <meta name="description" content={`Contact Yashraj Palace for room bookings, wedding planning, and event inquiries. Call ${phone} or WhatsApp. Near Maheshwar and Mandleshwar, Madhya Pradesh. We reply within 2 hours.`} />
         <link rel="canonical" href="https://www.yashrajpalace.com/contact" />
         <meta property="og:title" content="Contact Yashraj Palace – Hotel &amp; Event Venue near Maheshwar" />
-        <meta property="og:description" content="Reach Yashraj Palace on +91 70000 00000 or WhatsApp. Near Maheshwar &amp; Mandleshwar, MP. We reply within 2 hours." />
+        <meta property="og:description" content={`Reach Yashraj Palace on ${phone} or WhatsApp. Near Maheshwar & Mandleshwar, MP. We reply within 2 hours.`} />
         <meta property="og:url" content="https://www.yashrajpalace.com/contact" />
         <meta property="og:type" content="website" />
         <script type="application/ld+json">{JSON.stringify(CONTACT_SCHEMA)}</script>
@@ -120,10 +120,10 @@ export default function ContactPage() {
                 Available on phone, WhatsApp, or email — 9 AM to 10 PM, every day. Reach out for bookings, wedding planning, or a site visit.
               </p>
               <div className="flex flex-wrap gap-3 mb-10">
-                <a href="tel:+917000000000" className="btn-gold btn-lg text-[0.625rem]">
+                <a href={phoneHref} className="btn-gold btn-lg text-[0.625rem]">
                   <FiPhone size={13} /> Call Now
                 </a>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp btn-lg text-[0.625rem]">
+                <a href={waHref} className="btn-whatsapp btn-lg text-[0.625rem]">
                   <FaWhatsapp size={14} /> WhatsApp
                 </a>
               </div>
@@ -151,8 +151,8 @@ export default function ContactPage() {
                 </div>
                 <div className="px-7 pb-7 space-y-4">
                   {[
-                    { icon: <FiPhone size={15} />, label: 'Phone', value: '+91 70000 00000', href: 'tel:+917000000000', color: 'bg-maroon' },
-                    { icon: <FaWhatsapp size={15} />, label: 'WhatsApp', value: '+91 70000 00000', href: 'https://wa.me/917000000000', color: 'bg-green-600' },
+                    { icon: <FiPhone size={15} />, label: 'Phone', value: phone, href: phoneHref, color: 'bg-maroon' },
+                    { icon: <FaWhatsapp size={15} />, label: 'WhatsApp', value: phone, href: waHref, color: 'bg-green-600' },
                     { icon: <FiMail size={15} />, label: 'Email', value: 'info@yashrajpalace.com', href: 'mailto:info@yashrajpalace.com', color: 'bg-maroon' },
                     { icon: <FiMapPin size={15} />, label: 'Address', value: 'Near Mandleshwar, Khargone, MP', href: 'https://maps.google.com/?q=Yashraj+Palace+Mandleshwar', color: 'bg-maroon' },
                     { icon: <FiClock size={15} />, label: 'Front Desk', value: '24 / 7 — Always open', href: null, color: 'bg-maroon' },
@@ -187,12 +187,12 @@ export default function ContactPage() {
       {/* Quick action bar */}
       <div className="bg-[#1E0610] border-b border-gold/20">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gold/15">
-          <a href="tel:+917000000000"
+          <a href={phoneHref}
             className="flex items-center justify-center gap-3 py-4 text-white/80 hover:text-gold transition-colors group">
             <FiPhone size={16} className="text-gold" />
-            <span className="text-sm font-semibold tracking-wide">+91 70000 00000</span>
+            <span className="text-sm font-semibold tracking-wide">{phone}</span>
           </a>
-          <a href="https://wa.me/917000000000" target="_blank" rel="noreferrer"
+          <a href={waHref} target="_blank" rel="noreferrer"
             className="flex items-center justify-center gap-3 py-4 text-white/80 hover:text-green-400 transition-colors">
             <FaWhatsapp size={16} className="text-green-400" />
             <span className="text-sm font-semibold tracking-wide">WhatsApp Now</span>
@@ -257,10 +257,10 @@ export default function ContactPage() {
 
           {/* CTA buttons */}
           <div className="flex flex-col gap-3">
-            <a href="https://wa.me/917000000000" className="btn-whatsapp">
+            <a href={waHref} className="btn-whatsapp">
               <FaWhatsapp size={16} /> Chat on WhatsApp
             </a>
-            <a href="tel:+917000000000" className="btn-primary">
+            <a href={phoneHref} className="btn-primary">
               <FiPhone size={14} /> Call Now
             </a>
           </div>
@@ -341,7 +341,7 @@ export default function ContactPage() {
                 </button>
                 <p className="text-xs text-center text-charcoal-muted">
                   Prefer instant reply? Reach us on{' '}
-                  <a href="https://wa.me/917000000000" className="text-maroon font-semibold hover:underline">WhatsApp</a>
+                  <a href={waHref} className="text-maroon font-semibold hover:underline">WhatsApp</a>
                 </p>
               </form>
             </div>

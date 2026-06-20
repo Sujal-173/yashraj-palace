@@ -36,7 +36,7 @@ const ORG_SCHEMA = {
   },
   contactPoint: {
     '@type': 'ContactPoint',
-    telephone: '+91-70000-00000',
+    telephone: '+91-88270-39565',
     contactType: 'customer service',
     availableLanguage: ['Hindi', 'English'],
     hoursAvailable: { '@type': 'OpeningHoursSpecification', opens: '09:00', closes: '22:00' },

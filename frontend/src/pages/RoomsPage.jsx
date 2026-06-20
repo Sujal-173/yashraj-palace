@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import { FiCheck, FiUsers, FiMaximize2, FiWifi, FiStar, FiShield } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import { Calendar, Users, Heart, ChevronDown } from 'lucide-react'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 
 const AMENITIES = ['Free Wi-Fi','AC','Hot Water','24/7 Room Service','TV','Housekeeping','Parking','Power Backup']
 
@@ -57,6 +58,7 @@ const IMG_CLASS = { deluxe: 'room-img-deluxe', premium: 'room-img-premium', suit
 export default function RoomsPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { waHref } = useSiteSettings()
   const [rooms, setRooms]           = useState([])
   const [loading, setLoading]       = useState(true)
   const [checkIn, setCheckIn]       = useState(searchParams.get('checkIn')  ? new Date(searchParams.get('checkIn'))  : null)
@@ -140,7 +142,7 @@ export default function RoomsPage() {
               </p>
               <div className="flex flex-wrap gap-3 mb-10">
                 <a href="#rooms-list" className="btn-gold btn-lg text-[0.625rem]">View All Rooms</a>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp btn-lg text-[0.625rem]">
+                <a href={waHref} className="btn-whatsapp btn-lg text-[0.625rem]">
                   <FaWhatsapp size={14} /> WhatsApp
                 </a>
               </div>
@@ -280,7 +282,7 @@ export default function RoomsPage() {
             <p className="text-gold text-xs font-bold uppercase tracking-widest mb-1">Need Help Choosing?</p>
             <p className="text-white/80 text-sm">Our team can help you pick the perfect room and dates. Chat with us now.</p>
           </div>
-          <a href="https://wa.me/917000000000" className="btn-whatsapp shrink-0">
+          <a href={waHref} className="btn-whatsapp shrink-0">
             <FaWhatsapp size={16} /> Chat on WhatsApp
           </a>
         </div>

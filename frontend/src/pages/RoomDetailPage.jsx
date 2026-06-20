@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { FiCheck, FiUsers, FiMaximize2, FiStar, FiPhone } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 
 const STATIC_ROOMS = {
   'deluxe-room':  { _id: 'deluxe', slug: 'deluxe-room',  name: 'Deluxe Room',  type: 'deluxe',  price: 1800, capacity: 2, bedType: 'Queen Bed', size: 280, description: 'A well-appointed room with a queen bed, garden or courtyard view, premium linens, and all essentials for a restful stay. Perfect for couples and solo travellers visiting Maheshwar and the Narmada Ghats.', amenities: ['Free Wi-Fi','AC','LED TV','Hot & Cold Water','24/7 Room Service','Daily Housekeeping','Free Parking','Power Backup'], policies: { checkIn: '12:00 PM', checkOut: '11:00 AM', cancellation: 'Free cancellation up to 24 hours before check-in', extraBed: 500, breakfastPrice: 250 } },
@@ -22,6 +23,7 @@ export default function RoomDetailPage() {
   const navigate          = useNavigate()
   const { user }          = useAuth()
   const { initiatePayment } = useRazorpay()
+  const { phoneHref, waHref } = useSiteSettings()
 
   const [room, setRoom]         = useState(null)
   const [loading, setLoading]   = useState(true)
@@ -197,8 +199,8 @@ export default function RoomDetailPage() {
                 <div className="text-sm text-charcoal-muted">Our team is available 9 AM – 10 PM daily</div>
               </div>
               <div className="flex gap-2">
-                <a href="tel:+917000000000" className="btn-outline text-xs px-4 py-2 flex items-center gap-1"><FiPhone size={13}/> Call Us</a>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp text-xs px-4 py-2"><FaWhatsapp size={14}/> WhatsApp</a>
+                <a href={phoneHref} className="btn-outline text-xs px-4 py-2 flex items-center gap-1"><FiPhone size={13}/> Call Us</a>
+                <a href={waHref} className="btn-whatsapp text-xs px-4 py-2"><FaWhatsapp size={14}/> WhatsApp</a>
               </div>
             </div>
           </div>

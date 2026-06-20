@@ -84,14 +84,14 @@ const REVIEWS = [
 export default function EventsPage() {
   const { type } = useParams()
   const currentEvent = EVENT_DETAILS[type] || null
-  const { phoneHref, waHref } = useSiteSettings()
+  const { phone, phoneHref, waHref } = useSiteSettings()
   const isWedding = type === 'wedding'
 
   const seoTitle = currentEvent
     ? `${currentEvent.title} Venue – Yashraj Palace | Maheshwar`
     : 'Events & Celebrations – Yashraj Palace | Wedding Garden Maheshwar'
   const seoDesc = currentEvent
-    ? `Book ${currentEvent.title} at Yashraj Palace near Maheshwar. Garden for 1,000+ guests, in-house catering, full decoration. Call +91 70000 00000.`
+    ? `Book ${currentEvent.title} at Yashraj Palace near Maheshwar. Garden for 1,000+ guests, in-house catering, full decoration. Call ${phone}.`
     : 'Wedding garden, banquet hall, and event venue near Maheshwar and Mandleshwar. 1,000+ capacity. Weddings, receptions, corporate events, birthdays. Book now.'
 
   return (

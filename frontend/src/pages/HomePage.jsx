@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { FaWhatsapp } from 'react-icons/fa'
+import { useSiteSettings } from '../context/SiteSettingsContext'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import {
@@ -106,6 +107,7 @@ function GoldDivider() {
 
 export default function HomePage() {
   const navigate = useNavigate()
+  const { phone, phoneHref, waHref } = useSiteSettings()
   const [tab, setTab]               = useState('room')
   const [checkIn, setCheckIn]       = useState(null)
   const [checkOut, setCheckOut]     = useState(null)
@@ -134,7 +136,7 @@ export default function HomePage() {
     <>
       <Helmet>
         <title>Yashraj Palace – Hotel, Wedding Garden &amp; Events | Maheshwar | Mandleshwar</title>
-        <meta name="description" content="Premium hotel, wedding garden and event venue near Maheshwar and Mandleshwar, MP. Book rooms from ₹1,800/night. Wedding garden for 1,000+ guests. In-house catering, free parking. Call +91 70000 00000." />
+        <meta name="description" content="Premium hotel, wedding garden and event venue near Maheshwar and Mandleshwar, MP. Book rooms from ₹1,800/night. Wedding garden for 1,000+ guests. In-house catering, free parking. Call +91 88270 39565." />
         <link rel="canonical" href="https://www.yashrajpalace.com/" />
         <script type="application/ld+json">{JSON.stringify(FAQ_SCHEMA)}</script>
         <script type="application/ld+json">{JSON.stringify(REVIEW_SCHEMA)}</script>
@@ -189,7 +191,7 @@ export default function HomePage() {
                 <Link to="/events/book?type=wedding" className="btn-outline-gold btn-lg text-[0.625rem]">
                   Plan a Wedding
                 </Link>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp btn-lg text-[0.625rem]">
+                <a href={waHref} className="btn-whatsapp btn-lg text-[0.625rem]">
                   <FaWhatsapp size={14} /> WhatsApp
                 </a>
               </div>
@@ -687,8 +689,8 @@ export default function HomePage() {
             <div className="text-center mt-8 md:mt-12">
               <p className="text-stone-500 text-sm mb-4">Still have questions? We're here to help.</p>
               <div className="flex flex-wrap justify-center gap-3">
-                <a href="tel:+917000000000" className="btn-primary"><Phone size={14} /> Call Us</a>
-                <a href="https://wa.me/917000000000" className="btn-whatsapp"><FaWhatsapp size={14} /> WhatsApp</a>
+                <a href={phoneHref} className="btn-primary"><Phone size={14} /> Call Us</a>
+                <a href={waHref} className="btn-whatsapp"><FaWhatsapp size={14} /> WhatsApp</a>
               </div>
             </div>
           </div>
@@ -711,13 +713,13 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link to="/book-room" className="btn-gold btn-lg">Book a Room</Link>
             <Link to="/events/book" className="btn-outline-gold btn-lg">Plan an Event</Link>
-            <a href="https://wa.me/917000000000" className="btn-whatsapp btn-lg"><FaWhatsapp size={14} /> WhatsApp Now</a>
+            <a href={waHref} className="btn-whatsapp btn-lg"><FaWhatsapp size={14} /> WhatsApp Now</a>
           </div>
         </div>
       </section>
 
       {/* ══ FLOATING WHATSAPP ═════════════════════════════════════════════ */}
-      <a href="https://wa.me/917000000000" className="wa-float" aria-label="Chat on WhatsApp">
+      <a href={waHref} className="wa-float" aria-label="Chat on WhatsApp">
         <FaWhatsapp size={22} className="text-white" />
       </a>
     </>

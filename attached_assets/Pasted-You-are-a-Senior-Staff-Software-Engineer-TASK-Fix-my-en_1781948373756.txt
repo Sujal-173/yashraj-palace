@@ -1,0 +1,247 @@
+You are a Senior Staff Software Engineer.
+
+TASK:
+Fix my entire codebase with MINIMUM token usage.
+
+IMPORTANT RULES:
+
+* DO NOT explain concepts.
+* DO NOT generate unnecessary code.
+* DO NOT rewrite working files.
+* ONLY modify files that actually require changes.
+* Show only:
+
+  1. File path
+  2. Exact issue
+  3. Exact code change
+* Keep responses extremely compact.
+* Apply fixes directly and produce git-style patches when possible.
+
+PAYMENT INTEGRATION EXCEPTION:
+
+* Ignore all Razorpay/payment issues.
+* Ignore missing Razorpay keys.
+* Ignore payment verification improvements.
+* Ignore webhook configuration.
+* Do not touch payment-related code unless it breaks unrelated functionality.
+
+ALREADY FIXED:
+
+* Email credentials configured.
+* Email setup complete.
+* Do not spend tokens reviewing email configuration again.
+
+CURRENT GOAL:
+Fix all remaining issues from the audit.
+
+PRIORITY 1 (Fix Immediately)
+
+1. Placeholder contact details
+
+* Replace all:
+  +91 70000 00000
+  wa.me/917000000000
+* Use existing Settings model or environment variable.
+* Ensure emails, footer, contact page and WhatsApp button use a single source of truth.
+
+2. Room availability bug
+   File:
+   backend/controllers/roomController.js
+
+Fix:
+
+* checkAvailability must respect room.totalRooms.
+* Use countDocuments instead of findOne.
+* Availability should be:
+  count < room.totalRooms
+
+3. Unavailable dates bug
+   File:
+   backend/controllers/roomController.js
+
+Fix:
+
+* Only mark dates unavailable when overlapping bookings >= room.totalRooms.
+* Preserve existing API response format.
+
+4. Add-on price injection
+   File:
+   backend/controllers/bookingController.js
+
+Fix:
+
+* Never trust client supplied price.
+* Use server-side pricing only.
+* Reject unknown add-ons.
+
+PRIORITY 2
+
+5. Promo code rollback
+   File:
+   backend/controllers/bookingController.js
+
+Fix:
+
+* If booking creation fails:
+  usedCount must be reverted.
+* Prefer transaction if already available.
+* Otherwise rollback manually.
+
+6. Dashboard date mutation
+   File:
+   backend/controllers/miscControllers.js
+
+Fix:
+
+* Remove shared now.setHours mutations.
+* Create:
+  todayStart
+  todayEnd
+
+7. Cron promo rollback
+   File:
+   backend/utils/cron.js
+
+Fix:
+
+* When pending bookings are auto-cancelled:
+  decrement offer.usedCount.
+
+8. Booking lookup enumeration
+   Fix:
+
+* Same response for invalid booking id and invalid phone.
+* Add endpoint rate limit.
+
+9. XSS in email templates
+   File:
+   backend/utils/emailService.js
+
+Fix:
+
+* Escape user supplied values before interpolation.
+* Use lightweight sanitizer.
+* No new dependency unless required.
+
+10. Event token amount
+    File:
+    backend/controllers/eventController.js
+
+Fix:
+
+* Read tokenAmount from Settings model.
+* Remove hardcoded 10000.
+
+PRIORITY 3
+
+11. updateGalleryImage partial update bug
+    Fix:
+
+* Use $set.
+* Only update provided fields.
+
+12. updateRoom mass assignment risk
+    Fix:
+
+* Whitelist allowed fields.
+* Never pass raw req.body.
+
+13. Missing EventBooking index
+    Fix:
+
+* Add proper Mongo index.
+
+14. AuthContext stale user
+    File:
+    frontend/src/context/AuthContext.jsx
+
+Fix:
+
+* Validate token with backend on startup.
+* Refresh user using getMe().
+
+15. React Error Boundary
+    Fix:
+
+* Add lightweight global ErrorBoundary.
+* Wrap root app.
+
+16. Sitemap and robots
+    Generate only if missing.
+
+LOGIN ISSUE (VERY IMPORTANT)
+
+Users and Admins cannot login even with correct credentials.
+
+Investigate in this order:
+
+STEP 1
+Check backend auth controller.
+
+Verify:
+
+* bcrypt.compare()
+* password hashing during registration
+* JWT generation
+* JWT secret loading
+
+STEP 2
+Check frontend login request.
+
+Verify:
+
+* correct API URL
+* correct endpoint
+* request payload
+* response parsing
+
+STEP 3
+Check CORS.
+
+Verify:
+
+* frontend origin allowed
+* credentials settings
+
+STEP 4
+Check environment variables.
+
+Verify:
+JWT_SECRET
+MONGO_URI
+CLIENT_URL
+
+STEP 5
+Check database users.
+
+Verify:
+
+* password stored hashed
+* role values valid
+* user active status
+
+STEP 6
+Check browser storage.
+
+Verify:
+token storage
+AuthContext initialization
+ProtectedRoute logic
+
+OUTPUT FORMAT
+
+For every fix:
+
+FILE:
+ISSUE:
+PATCH:
+
+For login issue:
+
+ROOT CAUSE:
+EVIDENCE:
+FIX:
+
+Do not review already fixed email setup.
+Do not review payment integration.
+Focus only on remaining issues and login failure.
